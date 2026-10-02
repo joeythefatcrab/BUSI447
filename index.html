@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>447 Prep</title>
+<meta name="description" content="BUSI 447 Advanced Corporate Finance midterm prep: lessons, flashcards, practice questions and mock exams.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <button class="brand" data-go="home" aria-label="447 Prep home"><b>447 Prep</b><span>Adv. Corporate Finance</span></button>
+    <span class="countdown" id="countdown"></span>
+    <nav class="nav" aria-label="Main">
+      <button data-go="home">Home</button>
+      <button data-go="review">Review cards</button>
+      <button data-go="mock">Mock exam</button>
+      <button data-go="formulas">Formulas</button>
+      <button data-go="about">About</button>
+    </nav>
+  </div>
+</header>
+<div class="shell">
+  <aside class="rail" id="rail" aria-label="Units"></aside>
+  <main>
+    <div class="mobile-units"><label class="eyebrow" for="mobile-units" style="display:block;margin-bottom:4px">Units</label><select id="mobile-units" style="width:100%;padding:8px;border:1px solid var(--rule);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit"></select></div>
+    <div id="view" style="display:flex;flex-direction:column;gap:18px"></div>
+  </main>
+</div>
+<script src="data1.js"></script>
+<script src="data2.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
