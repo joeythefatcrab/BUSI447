@@ -8,6 +8,8 @@ A small study app for BUSI 447 (Advanced Corporate Finance, Rice) midterm prep.
 - **Mock exam** mode: questions spread across all units, optional timer, results by unit
 - **Formula sheet**, plus two interactive widgets (one-step binomial calculator, MM leverage explorer)
 
+Dark theme only, built for phones as well as laptops: on a phone you get a bottom tab bar, large tap targets, and you can add it to your home screen (Share → Add to Home Screen) to use it like an app.
+
 Plain HTML, CSS and JavaScript with no build step. Progress is saved in the browser's localStorage.
 
 ## Run it

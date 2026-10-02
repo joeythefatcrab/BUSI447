@@ -1,25 +1,19 @@
 /* 447 Prep. Layout: a top bar, a unit rail on wide screens, and one main column that
    switches between home, lesson, flashcards, practice, review, mock exam and formulas. */
 :root{
-  --bg:#f2f4f7; --surface:#ffffff; --surface-2:#f7f8fb; --ink:#14213d; --muted:#5b6475; --rule:#dde2ea;
-  --accent:#1f4e9c; --accent-ink:#ffffff; --accent-soft:#e6edf8; --gold:#b9811a; --gold-soft:#fbf1dc;
-  --good:#1e7b4f; --good-soft:#e3f3ea; --bad:#b23a3a; --bad-soft:#f9e5e5;
+  /* Dark only. Deep navy ground, blue accent, gold for the exam countdown and highlights. */
+  --bg:#0b111c; --surface:#131b2a; --surface-2:#18223a; --ink:#e7ecf5; --muted:#9aa5ba; --rule:#26314a;
+  --accent:#7fb0ff; --accent-ink:#0b111c; --accent-soft:#1a2a48; --gold:#e5b552; --gold-soft:#2b2414;
+  --good:#5fd09a; --good-soft:#12302a; --bad:#f08585; --bad-soft:#3a1d22;
   --f-serif:"Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,serif;
   --f-sans:"IBM Plex Sans","Segoe UI","Helvetica Neue",Arial,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-  --radius:10px;
-  color-scheme:light;
+  --radius:10px; --tabbar:62px;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0e1420; --surface:#161e2d; --surface-2:#1b2435; --ink:#e6eaf2; --muted:#98a2b5; --rule:#283247;
-  --accent:#7aa7f0; --accent-ink:#0e1420; --accent-soft:#1d2b45; --gold:#e1b14c; --gold-soft:#2c2617;
-  --good:#5cc28f; --good-soft:#16302a; --bad:#ec7f7f; --bad-soft:#3a1f22; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0e1420; --surface:#161e2d; --surface-2:#1b2435; --ink:#e6eaf2; --muted:#98a2b5; --rule:#283247;
-  --accent:#7aa7f0; --accent-ink:#0e1420; --accent-soft:#1d2b45; --gold:#e1b14c; --gold-soft:#2c2617;
-  --good:#5cc28f; --good-soft:#16302a; --bad:#ec7f7f; --bad-soft:#3a1f22; color-scheme:dark}
 
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-sans);font-size:16px;line-height:1.5}
 button{font:inherit;color:inherit}
@@ -192,17 +186,53 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .fgrid .f{font-family:var(--f-mono);font-size:.86rem;line-height:1.7;background:var(--surface-2);border-radius:6px;padding:8px 10px;overflow-x:auto}
 
 .mobile-units{display:none}
+.tabbar{display:none}
 @media (max-width:860px){
+  body{font-size:15px;padding-bottom:calc(var(--tabbar) + env(safe-area-inset-bottom,0px))}
   .top{position:static}
-  .shell{grid-template-columns:minmax(0,1fr)}
+  .top-in{padding:10px 16px;gap:10px;justify-content:space-between}
+  .top .nav{display:none}
+  .shell{grid-template-columns:minmax(0,1fr);padding-block:14px 28px;gap:14px}
   .rail{display:none}
   .mobile-units{display:block}
-  .hero{grid-template-columns:minmax(0,1fr)}
-  .hero h1{font-size:1.6rem}
-  .nav{margin-left:0;width:100%}
-  .grade{gap:6px}
+  .mobile-units select{min-height:44px;font-size:16px}
+  .tabbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;left:0;right:0;bottom:0;z-index:10;
+    background:var(--surface);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .tabbar button{height:var(--tabbar);background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    font-size:.7rem;color:var(--muted);cursor:pointer;padding:0}
+  .tabbar svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tabbar button[aria-current="page"]{color:var(--accent)}
+  .card{padding:16px}
+  .hero{grid-template-columns:minmax(0,1fr);gap:14px}
+  .hero h1{font-size:1.5rem}
+  .stats{gap:8px}
+  .stat b{font-size:1.1rem}
+  .next{padding:14px 16px}
+  .next .row,.next .btn{width:100%;justify-content:center}
+  .uhead h1{font-size:1.45rem}
+  .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:1 0 auto;padding:12px 10px;min-height:44px}
+  .lesson{font-size:1rem;line-height:1.6}
+  .lesson h2{font-size:1.18rem}
+  .lesson .f{font-size:.82rem;padding:8px 10px}
+  .lesson-foot .row,.lesson-foot .btn{width:100%;justify-content:center}
+  .btn{min-height:44px}
+  .fields input,.fields select{font-size:16px;min-height:40px}
+  .flash,.flash-in{min-height:min(42vh,300px)}
   .face{padding:20px}
   .face .q{font-size:1.15rem}
-  .byunit div{grid-template-columns:minmax(0,1fr) 50px 70px}
+  .face .a{font-size:1.02rem}
+  .face .hint .kbd{display:none}
+  .grade{gap:6px}
+  .grade button{min-height:56px;padding:8px 4px;font-size:.9rem}
+  .grade button small .kbd{display:none}
+  .qtext{font-size:1.08rem}
+  .choice{padding:12px;min-height:48px}
+  .palette button{width:36px;height:36px}
+  .byunit div{grid-template-columns:minmax(0,1fr) 46px 76px}
+  .fgrid{grid-template-columns:minmax(0,1fr)}
+  .units{grid-template-columns:minmax(0,1fr)}
 }
 @media (prefers-reduced-motion:reduce){.flash-in{transition:none}.bar>i{transition:none}}
+@media (max-width:480px){.brand span{display:none}}

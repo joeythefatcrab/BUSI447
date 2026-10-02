@@ -56,8 +56,9 @@
   function render() {
     if (cleanup) { cleanup(); cleanup = null; }
     const r = parse();
-    document.querySelectorAll(".nav button").forEach((b) => b.setAttribute("aria-current", b.dataset.go === r.page ? "page" : "false"));
+    document.querySelectorAll("[data-nav]").forEach((b) => b.setAttribute("aria-current", b.dataset.go === r.page ? "page" : "false"));
     renderRail(r);
+    $(".mobile-units").hidden = !(r.page === "home" || r.page === "unit");
     if (r.page === "unit") { P.last = r.unit + "-" + r.tab; save(); renderUnit(r.unit, r.tab); }
     else if (r.page === "review") renderReview();
     else if (r.page === "mock") renderMock();
@@ -232,7 +233,7 @@
       const flash = $("#flash"); if (!flash) return;
       flipped = !flipped; flash.classList.toggle("flipped", flipped);
       flash.querySelector(".front").setAttribute("aria-hidden", flipped); flash.querySelector(".back").setAttribute("aria-hidden", !flipped);
-      if (flipped) $("#grade").hidden = false;
+      if (flipped) { const g = $("#grade"); g.hidden = false; const r = g.getBoundingClientRect(); if (r.bottom > window.innerHeight - 70) g.scrollIntoView({ block: "end", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }
     }
     function onKey(e) {
       if (e.target.closest && e.target.closest("input,textarea")) return;
@@ -507,7 +508,7 @@
     });
   }
 
-  document.querySelectorAll(".nav button, .brand").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
+  document.querySelectorAll("[data-nav], .brand").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
   $("#mobile-units").addEventListener("change", (e) => { if (e.target.value) go(e.target.value); });
   $("#mobile-units").innerHTML = `<option value="">Jump to a unit…</option>` + UNITS.map((u) => `<option value="${u.id}">${u.num}. ${esc(u.title)}</option>`).join("");
   render();
