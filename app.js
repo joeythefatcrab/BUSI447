@@ -2,6 +2,20 @@
 (function () {
   "use strict";
   const UNITS = (window.UNITS || []).slice().sort((a, b) => a.num - b.num);
+  const FIGS = window.FIGS || {};
+  // Merge the extra reading, figures and questions (data3.js, data4.js) into each unit.
+  UNITS.forEach((u) => {
+    const x = (window.EXTRA || {})[u.id];
+    if (!x) return;
+    let sec = u.lesson.map((s) => ({ ...s }));
+    Object.entries(x.append || {}).forEach(([i, html]) => { if (sec[+i]) sec[+i].html += html; });
+    (x.insert || []).slice().sort((p, q) => q.after - p.after).forEach((s) => sec.splice(s.after + 1, 0, { h: s.h, html: s.html, tag: "Walkthrough" }));
+    if (x.intro) sec.unshift({ ...x.intro, tag: "Start here" });
+    if (x.confusions && x.confusions.length) sec.push({ h: "Common confusions", tag: "Read this", html: '<div class="confuse">' + x.confusions.map((c) => `<div><b>${c.q}</b>${c.a}</div>`).join("") + "</div>" });
+    u.lesson = sec;
+    u.quiz = u.quiz.concat(x.quiz || []);
+  });
+  function fillFigs(el) { el.querySelectorAll("figure[data-fig]").forEach((f) => { if (!f.querySelector("svg") && FIGS[f.dataset.fig]) f.insertAdjacentHTML("afterbegin", FIGS[f.dataset.fig]); }); }
   const EXAM = new Date("2026-10-05T09:00:00-05:00");
   const KEY = "busi447prep.v1";
   const $ = (s, el = document) => el.querySelector(s);
@@ -49,7 +63,7 @@
     const t = location.hash.slice(1) || "home";
     const m = t.match(/^(u\d+)(?:-(learn|cards|quiz))?$/);
     if (m && UNITS.find((u) => u.id === m[1])) return { page: "unit", unit: m[1], tab: m[2] || "learn" };
-    if (["home", "review", "mock", "formulas", "about"].includes(t)) return { page: t };
+    if (["home", "review", "mock", "formulas", "about", "map"].includes(t)) return { page: t };
     return { page: "home" };
   }
 
@@ -64,6 +78,7 @@
     else if (r.page === "mock") renderMock();
     else if (r.page === "formulas") renderFormulas();
     else if (r.page === "about") renderAbout();
+    else if (r.page === "map") renderMap();
     else renderHome();
     window.scrollTo(0, 0);
     const h = view.querySelector("h1"); if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); }
@@ -114,10 +129,12 @@
       </section>
       ${nx ? `<section class="next"><div><span class="eyebrow">Up next</span><h3>${esc(nx.label)}</h3></div><div class="row">${resume ? `<button class="btn" data-go="${resume}">Resume where you left off</button>` : ""}<button class="btn primary" data-go="${nx.u.id}-${nx.tab}">Start</button></div></section>`
         : `<section class="next"><div><span class="eyebrow">All units done</span><h3>Take a mock exam or review weak cards.</h3></div><div class="row"><button class="btn" data-go="review">Review cards</button><button class="btn primary" data-go="mock">Mock exam</button></div></section>`}
+      <section class="next" style="background:var(--surface)"><div><span class="eyebrow">Confused about how it all fits?</span><h3>Read the one-page course map first.</h3></div><div class="row"><button class="btn" data-go="map">Open the course map</button></div></section>
       <section style="display:flex;flex-direction:column;gap:10px">
         <h2 style="font-size:1.3rem">Units</h2>
         <div class="units">${UNITS.map(unitTile).join("")}</div>
-      </section>`;
+      </section>
+      <p class="muted" style="font-size:.85rem">How progress works, and resetting it: <button class="btn ghost" style="min-height:0;padding:2px 8px" data-go="about">About</button></p>`;
     wireGo(view);
   }
 
@@ -162,7 +179,8 @@
   function renderLesson(u, pane, idx) {
     const nextU = UNITS[idx + 1];
     pane.innerHTML = `<article class="card lesson">
-      ${u.lesson.map((sec, i) => `<section><h2><span class="k">${u.num}.${i + 1}</span>${esc(sec.h)}</h2>${sec.html}</section>`).join("")}
+      <nav class="toc" aria-label="Sections in this lesson">${u.lesson.map((sec, i) => `<a href="#" data-sec="${i}">${u.num}.${i + 1} ${esc(sec.h)}</a>`).join("")}</nav>
+      ${u.lesson.map((sec, i) => `<section id="sec-${i}"><h2><span class="k">${u.num}.${i + 1}</span>${esc(sec.h)}${sec.tag ? ` <span class="tag">${esc(sec.tag)}</span>` : ""}</h2>${sec.html}</section>`).join("")}
       ${u.widget ? `<section id="widget"></section>` : ""}
       <div class="lesson-foot">
         <span class="muted" style="font-family:var(--f-sans);font-size:.9rem">${P.read[u.id] ? "Marked as read." : "Finished? Mark it read, then test yourself."}</span>
@@ -173,7 +191,9 @@
       </div>
     </article>
     ${nextU ? `<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-go="${nextU.id}">Next unit: ${esc(nextU.title)} →</button></div>` : ""}`;
-    pane.querySelectorAll(".lesson table.mini").forEach((t) => { const w = document.createElement("div"); w.className = "tblwrap"; t.parentNode.insertBefore(w, t); w.appendChild(t); });
+    fillFigs(pane);
+    pane.querySelectorAll(".toc a").forEach((l) => l.addEventListener("click", (e) => { e.preventDefault(); const s = $("#sec-" + l.dataset.sec); if (s) s.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }));
+    pane.querySelectorAll(".lesson table.mini").forEach((t) => { const w = document.createElement("div"); w.className = "tblwrap"; if (t.parentNode.classList.contains("tblwrap")) return; t.parentNode.insertBefore(w, t); w.appendChild(t); });
     $("#markread").addEventListener("click", () => { if (P.read[u.id]) delete P.read[u.id]; else P.read[u.id] = Date.now(); save(); render(); });
     wireGo(pane);
     if (u.widget === "binomial") binomialWidget($("#widget"));
@@ -261,8 +281,19 @@
     return { unit: u, id: qId(u, i), q: q.q, why: q.why, choices: order.map((o) => o.t), answer: order.findIndex((o) => o.k === q.a) };
   }
 
-  function renderQuiz(pane, u) {
-    const qs = shuffle(u.quiz.map((q, i) => prepQ(u, q, i)));
+  function renderQuiz(pane, u, size) {
+    if (!size) {
+      const prev = P.quiz[u.id];
+      pane.innerHTML = `<div class="card" style="display:flex;flex-direction:column;gap:14px">
+        <span class="eyebrow">Unit ${u.num} practice · ${u.quiz.length} questions in the bank</span>
+        <h2 style="font-size:1.3rem">How many questions?</h2>
+        <p class="muted">Each set draws at random from the bank and reshuffles the answer choices. Explanations appear after every question.${prev ? ` Best so far: ${Math.round(prev.best * 100)}%.` : ""}</p>
+        <div class="row"><button class="btn" data-n="8">Quick set · 8</button><button class="btn primary" data-n="${u.quiz.length}">Full set · ${u.quiz.length}</button></div>
+      </div>`;
+      pane.querySelectorAll("[data-n]").forEach((b) => b.addEventListener("click", () => renderQuiz(pane, u, +b.dataset.n)));
+      return;
+    }
+    const qs = shuffle(u.quiz.map((q, i) => prepQ(u, q, i))).slice(0, size);
     let i = 0, right = 0, picked = null, checked = false;
     const missed = [];
     function show() {
@@ -329,7 +360,7 @@
     view.innerHTML = `<section class="uhead"><span class="eyebrow">Exam simulation</span><h1>Mock exam</h1><p class="muted">Questions drawn at random from every unit. No feedback until you submit, like the real thing. The midterm is about 60 minutes with multiple choice and short answer, so this covers the multiple-choice half.</p></section>
       <div class="card" style="display:flex;flex-direction:column;gap:14px">
         <div class="fields" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
-          <label>Number of questions<input id="mn" type="number" min="5" max="${pool.length}" value="20"></label>
+          <label>Number of questions<input id="mn" type="number" min="5" max="${pool.length}" value="25"></label>
           <label>Time limit (minutes, 0 = none)<input id="mt" type="number" min="0" max="120" value="25"></label>
         </div>
         <div class="row"><button class="btn primary" id="start">Start mock exam</button></div>
@@ -490,6 +521,15 @@
     ];
     view.innerHTML = `<section class="uhead"><span class="eyebrow">Reference</span><h1>Formula sheet</h1><p class="muted">Everything you need to compute on the midterm, in one place.</p></section>
       <div class="fgrid">${F.map(([h, f]) => `<div class="card"><h3>${h}</h3><div class="f">${f}</div></div>`).join("")}</div>`;
+  }
+
+  function renderMap() {
+    const M = window.COURSE_MAP || { html: "" };
+    view.innerHTML = `<section class="uhead"><span class="eyebrow">Start here</span><h1>Course map</h1><p class="muted">The whole midterm on one page. Read this before the units, and come back whenever things blur together.</p></section>
+      <article class="card lesson"><section>${M.html}</section>
+      <div class="lesson-foot"><span class="muted" style="font-family:var(--f-sans);font-size:.9rem">Ready?</span><div class="row"><button class="btn primary" data-go="u1">Start Unit 1 →</button></div></div></article>
+      <div class="units">${UNITS.map(unitTile).join("")}</div>`;
+    fillFigs(view); wireGo(view);
   }
 
   function renderAbout() {
